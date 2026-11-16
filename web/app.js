@@ -12,6 +12,8 @@ let expenses = load();
 let budgets = loadBudgets();
 let month = THIS_MONTH;   // "YYYY-MM" or null = all time
 let catFilter = null;
+let dateFilter = null;
+let calendarOpen = false;
 let lastDeleted = null, toastTimer;
 
 function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } }
@@ -30,7 +32,7 @@ function removeExpense(id) {
 const inScope = () => expenses.filter((e) => !month || e.date.startsWith(month));
 function visible() {
   const q = $("search").value.trim().toLowerCase();
-  return inScope().filter((e) => (!catFilter || e.category === catFilter) && (!q || e.title.toLowerCase().includes(q)))
+  return inScope().filter((e) => (!catFilter || e.category === catFilter) && (!dateFilter || e.date === dateFilter) && (!q || e.title.toLowerCase().includes(q)))
     .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 }
 function exportCSV() {
@@ -96,6 +98,31 @@ function render() {
   });
   $("clearCat").hidden = !catFilter; $("clearCat").textContent = catFilter ? `${catFilter}  ✕` : "";
 
+  const calendar = $("calendar"), grid = $("calendarGrid");
+  calendar.hidden = !calendarOpen || !month;
+  $("calendarToggle").setAttribute("aria-pressed", String(calendarOpen));
+  $("calendarToggle").textContent = calendarOpen ? "List view" : "Calendar";
+  grid.replaceChildren();
+  if (month && calendarOpen) {
+    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach((day) => grid.appendChild(el("span", "calendar-weekday", day)));
+    const [year, monthNum] = month.split("-").map(Number);
+    const firstWeekday = new Date(year, monthNum - 1, 1).getDay();
+    const daysInMonth = new Date(year, monthNum, 0).getDate();
+    const daily = {};
+    scope.forEach((e) => { daily[e.date] = (daily[e.date] || 0) + e.amount; });
+    for (let i = 0; i < firstWeekday; i++) grid.appendChild(el("span", "calendar-blank"));
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = `${month}-${String(day).padStart(2, "0")}`, amount = daily[date] || 0;
+      const cell = el("button", `calendar-day${dateFilter === date ? " selected" : ""}${amount ? " has-spend" : ""}`);
+      cell.type = "button"; cell.setAttribute("aria-pressed", String(dateFilter === date));
+      cell.setAttribute("aria-label", amount ? `${day}, spending ${inr.format(amount)}` : `${day}, no spending`);
+      cell.appendChild(el("span", "calendar-date", String(day)));
+      if (amount) cell.appendChild(el("span", "calendar-amount", inr.format(amount)));
+      cell.onclick = () => { dateFilter = dateFilter === date ? null : date; render(); };
+      grid.appendChild(cell);
+    }
+  }
+
   const list = $("list"), items = visible(); list.replaceChildren();
   if (!items.length) {
     const box = el("div", "empty");
@@ -120,7 +147,7 @@ function render() {
 }
 function setCat(c) { catFilter = catFilter === c ? null : c; render(); }
 function shift(n) { const [y, m] = month.split("-").map(Number); const d = new Date(y, m - 1 + n, 1);
-  month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; catFilter = null; render(); }
+  month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; catFilter = null; dateFilter = null; render(); }
 
 /* ---------- dialog, toast, events ---------- */
 function toast(msg, action, fn) {
@@ -145,7 +172,11 @@ $("cancel").onclick = () => $("dlg").close();
 $("dlg").addEventListener("click", (e) => { if (e.target === $("dlg")) $("dlg").close(); });
 ["openAdd", "fab"].forEach((id) => $(id).onclick = openAdd);
 $("prev").onclick = () => shift(-1); $("next").onclick = () => shift(1);
-$("allToggle").onclick = () => { month = month ? null : THIS_MONTH; catFilter = null; render(); };
+$("allToggle").onclick = () => { month = month ? null : THIS_MONTH; catFilter = null; dateFilter = null; render(); };
+$("calendarToggle").onclick = () => {
+  if (!month) { month = THIS_MONTH; catFilter = null; dateFilter = null; }
+  calendarOpen = !calendarOpen; render();
+};
 $("clearCat").onclick = () => setCat(catFilter);
 $("search").addEventListener("input", render);
 $("exportBtn").onclick = exportCSV;
