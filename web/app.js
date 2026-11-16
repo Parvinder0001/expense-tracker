@@ -2,10 +2,13 @@
 const CATS = {Food:"#e07a3f",Travel:"#2a7de1",Shopping:"#b5489b",Bills:"#5b6b8c",Health:"#d64550",Education:"#0e9f7e",Other:"#a38f5c"};
 const KEY = "expenses";
 const BKEY = "buylist";
+const SKEY = "settings";
 const PRIORITIES = ["High", "Medium", "Low"];
 const PAYMENT_METHODS = ["UPI", "Cash", "Debit Card", "Credit Card", "Bank Transfer", "Other"];
 const $ = (id) => document.getElementById(id);
-const inr = new Intl.NumberFormat("en-IN", {style:"currency", currency:"INR", minimumFractionDigits:2});
+const DEFAULT_SETTINGS = {theme:"system", currency:"INR", paymentMethod:"UPI", monthlyBudget:0};
+let settings = loadSettings();
+let money = makeMoneyFormatter();
 const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const TODAY = iso(new Date());
 const THIS_MONTH = TODAY.slice(0, 7);
@@ -21,6 +24,12 @@ function load() { try { return (JSON.parse(localStorage.getItem(KEY)) || []).map
 function save() { try { localStorage.setItem(KEY, JSON.stringify(expenses)); } catch {} }
 function loadBuy() { try { return JSON.parse(localStorage.getItem(BKEY)) || []; } catch { return []; } }
 function saveBuy() { try { localStorage.setItem(BKEY, JSON.stringify(buylist)); } catch {} }
+function loadSettings() { try { return {...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem(SKEY)) || {})}; } catch { return {...DEFAULT_SETTINGS}; } }
+function saveSettings() { localStorage.setItem(SKEY, JSON.stringify(settings)); }
+function makeMoneyFormatter() {
+  const locale = {INR:"en-IN", USD:"en-US", EUR:"de-DE", GBP:"en-GB"}[settings.currency] || "en-IN";
+  return new Intl.NumberFormat(locale, {style:"currency", currency:settings.currency, minimumFractionDigits:2});
+}
 function nextId() { return expenses.reduce((m, e) => Math.max(m, e.id), 0) + 1; }
 
 /* ---------- features ---------- */
@@ -74,7 +83,7 @@ const sortedBuy = () => [...buylist].sort((a, b) => PRIORITIES.indexOf(a.priorit
 
 function renderBuy() {
   const total = buylist.reduce((s, x) => s + x.price, 0);
-  $("buyTotal").textContent = inr.format(total);
+  $("buyTotal").textContent = money.format(total);
   const high = buylist.filter((x) => x.priority === "High").length;
   $("buyNote").textContent = buylist.length
     ? `${buylist.length} item${buylist.length > 1 ? "s" : ""} to buy${high ? `, ${high} high priority` : ""}.` : "Nothing planned yet.";
@@ -94,7 +103,7 @@ function renderBuy() {
     const meta = el("span", "c", x.category + " · "); meta.appendChild(tag);
     t.append(el("span", "t", x.name), meta);
     del.innerHTML = svgTrash; del.setAttribute("aria-label", `Remove ${x.name}`); del.onclick = () => removeBuyItem(x.id);
-    row.append(done, t, el("span", "amt", inr.format(x.price)), del); list.appendChild(row);
+    row.append(done, t, el("span", "amt", money.format(x.price)), del); list.appendChild(row);
   });
 }
 
@@ -111,7 +120,16 @@ function renderExpenses() {
   $("periodLabel").textContent = label;
   $("prev").disabled = !month; $("next").disabled = !month || month >= THIS_MONTH;
   $("allToggle").textContent = month ? "Show all time" : "Back to this month";
-  $("total").textContent = inr.format(total);
+  $("total").textContent = money.format(total);
+  const budget = Number(settings.monthlyBudget) || 0;
+  $("budgetCard").hidden = !month || budget <= 0;
+  if (budget > 0 && month) {
+    const progress = Math.min(100, total / budget * 100);
+    $("budgetLabel").textContent = money.format(total) + " / " + money.format(budget);
+    $("budgetProgress").style.width = progress + "%";
+    $("budgetProgress").classList.toggle("over", total > budget);
+    $("budgetNote").textContent = total > budget ? money.format(total - budget) + " over budget" : money.format(budget - total) + " remaining";
+  }
 
   const by = {};
   scope.forEach((e) => by[e.category] = (by[e.category] || 0) + e.amount);
@@ -122,11 +140,11 @@ function renderExpenses() {
   const split = $("split"), legend = $("legend");
   split.replaceChildren(); legend.replaceChildren();
   rows.forEach(([c, v]) => {
-    const seg = el("button"); seg.style.cssText = `flex:${v} 1 0;background:${CATS[c]}`; seg.title = `${c}: ${inr.format(v)}`;
+    const seg = el("button"); seg.style.cssText = `flex:${v} 1 0;background:${CATS[c]}`; seg.title = `${c}: ${money.format(v)}`;
     seg.setAttribute("aria-label", `Filter by ${c}`); seg.onclick = () => setCat(c); split.appendChild(seg);
     const li = el("li"), b = el("button"); b.setAttribute("aria-pressed", catFilter === c);
     const dot = el("span", "dot"); dot.style.background = CATS[c];
-    b.append(dot, el("span", "", c), el("span", "pct", Math.round(v / total * 100) + "%"), el("span", "amt", inr.format(v)));
+    b.append(dot, el("span", "", c), el("span", "pct", Math.round(v / total * 100) + "%"), el("span", "amt", money.format(v)));
     b.onclick = () => setCat(c); li.appendChild(b); legend.appendChild(li);
   });
   $("clearCat").hidden = !catFilter; $("clearCat").textContent = catFilter ? `${catFilter}  ✕` : "";
@@ -145,22 +163,23 @@ function renderExpenses() {
   let last = "";
   items.forEach((e) => {
     if (e.date !== last) { last = e.date; const sum = items.filter((x) => x.date === e.date).reduce((s, x) => s + x.amount, 0);
-      const h = el("div", "day"); h.append(el("span", "", dayLabel(e.date)), el("span", "", inr.format(sum))); list.appendChild(h); }
+      const h = el("div", "day"); h.append(el("span", "", dayLabel(e.date)), el("span", "", money.format(sum))); list.appendChild(h); }
     const row = el("div", "item"), dot = el("span", "dot"), t = el("div"), del = el("button", "del");
     dot.style.background = CATS[e.category];
     const metadata = [e.category, e.paymentMethod || "Other", ...(e.tags || []).map((tag) => `#${tag}`)].join(" · ");
     t.append(el("span", "t", e.title), el("span", "c", metadata));
     del.innerHTML = svgTrash; del.setAttribute("aria-label", `Delete ${e.title}`); del.onclick = () => { removeExpense(e.id); render(); };
-    row.append(dot, t, el("span", "amt", inr.format(e.amount)), del); list.appendChild(row);
+    row.append(dot, t, el("span", "amt", money.format(e.amount)), del); list.appendChild(row);
   });
 }
 function render() { renderExpenses(); renderBuy(); syncTab(); }
 function setTab(t) { tab = t; render(); }
 function syncTab() {
-  const buy = tab === "buy";
-  $("expView").hidden = buy; $("buyView").hidden = !buy;
-  $("tabExp").setAttribute("aria-selected", !buy); $("tabBuy").setAttribute("aria-selected", buy);
-  $("exportBtn").hidden = buy;
+  const buy = tab === "buy", settingsTab = tab === "settings";
+  $("expView").hidden = buy || settingsTab; $("buyView").hidden = !buy; $("settingsView").hidden = !settingsTab;
+  $("tabExp").setAttribute("aria-selected", tab === "exp"); $("tabBuy").setAttribute("aria-selected", buy); $("tabSettings").setAttribute("aria-selected", settingsTab);
+  $("exportBtn").hidden = buy || settingsTab;
+  $("openAdd").hidden = settingsTab; $("fab").hidden = settingsTab;
   $("openAdd").textContent = buy ? "Add to buy list" : "Add expense";
   $("fab").setAttribute("aria-label", buy ? "Add to buy list" : "Add expense");
 }
@@ -174,7 +193,7 @@ function toast(msg, action, fn) {
   if (action) { const b = el("button", "", action); b.onclick = () => { fn(); t.classList.remove("show"); }; t.appendChild(b); }
   t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 4000);
 }
-function openAdd() { $("form").reset(); $("date").value = TODAY; $("err").textContent = ""; $("cats").querySelector("input").checked = true; $("dlg").showModal(); $("title").focus(); }
+function openAdd() { $("form").reset(); $("date").value = TODAY; $("err").textContent = ""; $("cats").querySelector("input").checked = true; $("paymentMethod").value = settings.paymentMethod; $("dlg").showModal(); $("title").focus(); }
 
 function openBuy() { $("buyForm").reset(); $("buyErr").textContent = ""; $("buyPri").querySelector("input[value=Medium]").checked = true;
   $("buyCats").querySelector("input").checked = true; $("buyDlg").showModal(); $("buyName").focus(); }
@@ -196,6 +215,27 @@ $("buyForm").addEventListener("submit", (ev) => {
 $("buyCancel").onclick = () => $("buyDlg").close();
 $("buyDlg").addEventListener("click", (e) => { if (e.target === $("buyDlg")) $("buyDlg").close(); });
 $("tabExp").onclick = () => setTab("exp"); $("tabBuy").onclick = () => setTab("buy");
+$("tabSettings").onclick = () => setTab("settings");
+["themeSetting", "currencySetting", "paymentSetting", "budgetSetting"].forEach((id) => {
+  $(id).addEventListener("change", () => {
+    if (id === "budgetSetting" && Number($(id).value) < 0) { $(id).value = 0; }
+    settings.theme = $("themeSetting").value;
+    settings.currency = $("currencySetting").value;
+    settings.paymentMethod = $("paymentSetting").value;
+    settings.monthlyBudget = Math.max(0, Number($("budgetSetting").value) || 0);
+    saveSettings();
+    document.documentElement.dataset.theme = settings.theme;
+    money = makeMoneyFormatter();
+    $("settingsSaved").textContent = "Settings saved on this device.";
+    render();
+  });
+});
+$("backupBtn").onclick = () => {
+  const backup = {version:1, exportedAt:new Date().toISOString(), expenses, buylist, settings};
+  const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"}));
+  const link = Object.assign(document.createElement("a"), {href:url, download:"expense-tracker-backup.json"});
+  link.click(); URL.revokeObjectURL(url);
+};
 
 $("cats").innerHTML = Object.entries(CATS).map(([c, col], i) =>
   `<label><input type="radio" name="cat" value="${c}"${i ? "" : " checked"}><span><i class="dot" style="background:${col}"></i>${c}</span></label>`).join("");
@@ -217,4 +257,9 @@ $("allToggle").onclick = () => { month = month ? null : THIS_MONTH; catFilter = 
 $("clearCat").onclick = () => setCat(catFilter);
 $("search").addEventListener("input", render);
 $("exportBtn").onclick = exportCSV;
+document.documentElement.dataset.theme = settings.theme;
+$("themeSetting").value = settings.theme;
+$("currencySetting").value = settings.currency;
+$("paymentSetting").value = settings.paymentMethod;
+$("budgetSetting").value = settings.monthlyBudget || "";
 render();
