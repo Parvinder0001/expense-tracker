@@ -42,10 +42,9 @@ expense-tracker/
 ├── reports.py       # Search, filter, summaries, CSV export
 ├── buylist.py       # Buy list for future purchases
 ├── config.py        # Shared settings
-├── web/
-│   ├── index.html   # Responsive page structure
-│   ├── style.css    # Mobile-first styles + dark mode
-│   └── app.js       # Web version of all features (localStorage)
+├── index.html      # Responsive web app page
+├── style.css       # Responsive styles + themes
+├── app.js          # Web app features (localStorage)
 ├── data/            # Runtime data (ignored by git)
 ├── README.md
 ├── CONTRIBUTING.md
@@ -61,8 +60,8 @@ python main.py
 No external packages are required.
 
 ### Run the responsive web version
-Open `web/index.html` in any browser (no server needed), or use GitHub Pages:
-**Settings → Pages → Deploy from branch → `main` / `/web`**.
+Open `index.html` in any browser (no server needed), or use GitHub Pages:
+**Settings → Pages → Deploy from branch → `main` / `/(root)`**.
 Resize the browser window (or use DevTools device mode) to see the responsive layout.
 
 ## 🖥 Sample Output
