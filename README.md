@@ -1,6 +1,6 @@
 # 💰 Personal Expense Tracker
 
-A menu-driven command-line application to record, search and summarise personal expenses.
+A menu-driven app to record, search, summarise, and manage personal expenses.
 Built as the **SEC101 MCA Group Assignment** (Git, GitHub and Markdown).
 
 ## 🎯 Objectives
