@@ -1,6 +1,7 @@
 // Expense Tracker web app – same features as the Python CLI
 const CATS = {Food:"#e07a3f",Travel:"#2a7de1",Shopping:"#b5489b",Bills:"#5b6b8c",Health:"#d64550",Education:"#0e9f7e",Other:"#a38f5c"};
 const KEY = "expenses";
+const BUDGET_KEY = "monthlyBudgets";
 const $ = (id) => document.getElementById(id);
 const inr = new Intl.NumberFormat("en-IN", {style:"currency", currency:"INR", minimumFractionDigits:2});
 const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
@@ -8,12 +9,15 @@ const TODAY = iso(new Date());
 const THIS_MONTH = TODAY.slice(0, 7);
 
 let expenses = load();
+let budgets = loadBudgets();
 let month = THIS_MONTH;   // "YYYY-MM" or null = all time
 let catFilter = null;
 let lastDeleted = null, toastTimer;
 
 function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(expenses)); } catch {} }
+function loadBudgets() { try { const value = JSON.parse(localStorage.getItem(BUDGET_KEY)); return value && typeof value === "object" ? value : {}; } catch { return {}; } }
+function saveBudgets() { try { localStorage.setItem(BUDGET_KEY, JSON.stringify(budgets)); } catch {} }
 function nextId() { return expenses.reduce((m, e) => Math.max(m, e.id), 0) + 1; }
 
 /* ---------- features ---------- */
@@ -60,6 +64,19 @@ function render() {
   $("prev").disabled = !month; $("next").disabled = !month || month >= THIS_MONTH;
   $("allToggle").textContent = month ? "Show all time" : "Back to this month";
   $("total").textContent = inr.format(total);
+
+  const budgetBox = $("budget"), budgetInput = $("budgetAmount"), budgetStatus = $("budgetStatus");
+  budgetBox.hidden = !month;
+  if (month) {
+    const budget = Number(budgets[month]) || 0, used = budget ? total / budget * 100 : 0;
+    budgetInput.value = budget || "";
+    $("budgetFill").style.width = `${Math.min(used, 100)}%`;
+    $("budgetFill").classList.toggle("over", budget > 0 && total > budget);
+    $("budgetTrack").setAttribute("aria-valuenow", String(Math.min(Math.round(used), 100)));
+    $("budgetTrack").setAttribute("aria-valuetext", budget ? `${Math.round(used)}% used` : "No budget set");
+    budgetStatus.textContent = !budget ? "Set a limit to track your spending." : total > budget
+      ? `${inr.format(total - budget)} over budget` : `${inr.format(budget - total)} left · ${Math.round(used)}% used`;
+  }
 
   const by = {};
   scope.forEach((e) => by[e.category] = (by[e.category] || 0) + e.amount);
@@ -132,4 +149,11 @@ $("allToggle").onclick = () => { month = month ? null : THIS_MONTH; catFilter = 
 $("clearCat").onclick = () => setCat(catFilter);
 $("search").addEventListener("input", render);
 $("exportBtn").onclick = exportCSV;
+$("budgetAmount").addEventListener("change", (ev) => {
+  if (!month) return;
+  const amount = Number(ev.target.value);
+  if (amount > 0 && Number.isFinite(amount)) budgets[month] = Math.round(amount * 100) / 100;
+  else delete budgets[month];
+  saveBudgets(); render();
+});
 render();

@@ -29,6 +29,15 @@
         </div>
         <p class="total" id="total" aria-live="polite"></p>
         <p class="note" id="note"></p>
+        <section class="budget" id="budget" aria-label="Monthly budget">
+          <div class="budget-head">
+            <div><strong>Monthly budget</strong><p id="budgetStatus" class="budget-status" aria-live="polite"></p></div>
+            <label class="budget-input">Limit
+              <span><span aria-hidden="true">₹</span><input id="budgetAmount" type="number" min="0" step="100" inputmode="decimal" placeholder="Set limit" aria-label="Monthly budget amount"></span>
+            </label>
+          </div>
+          <div class="budget-track" id="budgetTrack" role="progressbar" aria-label="Monthly budget used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="budgetFill"></span></div>
+        </section>
         <div class="split" id="split" role="img" aria-label="Spending by category"></div>
         <ul class="legend" id="legend"></ul>
       </section>
