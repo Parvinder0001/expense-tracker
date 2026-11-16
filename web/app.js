@@ -14,6 +14,7 @@ const TODAY = iso(new Date());
 const THIS_MONTH = TODAY.slice(0, 7);
 
 let expenses = load();
+let budgets = loadBudgets();
 let month = THIS_MONTH;   // "YYYY-MM" or null = all time
 let catFilter = null;
 let buylist = loadBuy();
@@ -131,6 +132,19 @@ function renderExpenses() {
     $("budgetNote").textContent = total > budget ? money.format(total - budget) + " over budget" : money.format(budget - total) + " remaining";
   }
 
+  const budgetBox = $("budget"), budgetInput = $("budgetAmount"), budgetStatus = $("budgetStatus");
+  budgetBox.hidden = !month;
+  if (month) {
+    const budget = Number(budgets[month]) || 0, used = budget ? total / budget * 100 : 0;
+    budgetInput.value = budget || "";
+    $("budgetFill").style.width = `${Math.min(used, 100)}%`;
+    $("budgetFill").classList.toggle("over", budget > 0 && total > budget);
+    $("budgetTrack").setAttribute("aria-valuenow", String(Math.min(Math.round(used), 100)));
+    $("budgetTrack").setAttribute("aria-valuetext", budget ? `${Math.round(used)}% used` : "No budget set");
+    budgetStatus.textContent = !budget ? "Set a limit to track your spending." : total > budget
+      ? `${inr.format(total - budget)} over budget` : `${inr.format(budget - total)} left · ${Math.round(used)}% used`;
+  }
+
   const by = {};
   scope.forEach((e) => by[e.category] = (by[e.category] || 0) + e.amount);
   const rows = Object.entries(by).sort((a, b) => b[1] - a[1]);
@@ -148,6 +162,31 @@ function renderExpenses() {
     b.onclick = () => setCat(c); li.appendChild(b); legend.appendChild(li);
   });
   $("clearCat").hidden = !catFilter; $("clearCat").textContent = catFilter ? `${catFilter}  ✕` : "";
+
+  const calendar = $("calendar"), grid = $("calendarGrid");
+  calendar.hidden = !calendarOpen || !month;
+  $("calendarToggle").setAttribute("aria-pressed", String(calendarOpen));
+  $("calendarToggle").textContent = calendarOpen ? "List view" : "Calendar";
+  grid.replaceChildren();
+  if (month && calendarOpen) {
+    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach((day) => grid.appendChild(el("span", "calendar-weekday", day)));
+    const [year, monthNum] = month.split("-").map(Number);
+    const firstWeekday = new Date(year, monthNum - 1, 1).getDay();
+    const daysInMonth = new Date(year, monthNum, 0).getDate();
+    const daily = {};
+    scope.forEach((e) => { daily[e.date] = (daily[e.date] || 0) + e.amount; });
+    for (let i = 0; i < firstWeekday; i++) grid.appendChild(el("span", "calendar-blank"));
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = `${month}-${String(day).padStart(2, "0")}`, amount = daily[date] || 0;
+      const cell = el("button", `calendar-day${dateFilter === date ? " selected" : ""}${amount ? " has-spend" : ""}`);
+      cell.type = "button"; cell.setAttribute("aria-pressed", String(dateFilter === date));
+      cell.setAttribute("aria-label", amount ? `${day}, spending ${inr.format(amount)}` : `${day}, no spending`);
+      cell.appendChild(el("span", "calendar-date", String(day)));
+      if (amount) cell.appendChild(el("span", "calendar-amount", inr.format(amount)));
+      cell.onclick = () => { dateFilter = dateFilter === date ? null : date; render(); };
+      grid.appendChild(cell);
+    }
+  }
 
   const list = $("list"), items = visible(); list.replaceChildren();
   if (!items.length) {
@@ -185,7 +224,7 @@ function syncTab() {
 }
 function setCat(c) { catFilter = catFilter === c ? null : c; render(); }
 function shift(n) { const [y, m] = month.split("-").map(Number); const d = new Date(y, m - 1 + n, 1);
-  month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; catFilter = null; render(); }
+  month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; catFilter = null; dateFilter = null; render(); }
 
 /* ---------- dialog, toast, events ---------- */
 function toast(msg, action, fn) {
@@ -253,7 +292,11 @@ $("cancel").onclick = () => $("dlg").close();
 $("dlg").addEventListener("click", (e) => { if (e.target === $("dlg")) $("dlg").close(); });
 ["openAdd", "fab"].forEach((id) => $(id).onclick = openCurrent);
 $("prev").onclick = () => shift(-1); $("next").onclick = () => shift(1);
-$("allToggle").onclick = () => { month = month ? null : THIS_MONTH; catFilter = null; render(); };
+$("allToggle").onclick = () => { month = month ? null : THIS_MONTH; catFilter = null; dateFilter = null; render(); };
+$("calendarToggle").onclick = () => {
+  if (!month) { month = THIS_MONTH; catFilter = null; dateFilter = null; }
+  calendarOpen = !calendarOpen; render();
+};
 $("clearCat").onclick = () => setCat(catFilter);
 $("search").addEventListener("input", render);
 $("exportBtn").onclick = exportCSV;
