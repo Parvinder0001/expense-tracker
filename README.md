@@ -12,8 +12,8 @@ Built as the **SEC101 MCA Group Assignment** (Git, GitHub and Markdown).
 
 | Member | Roll No. | GitHub | Contribution |
 |--------|----------|--------|--------------|
-| Student 1 – `<NAME>` | `<ROLL>` | [@username1](https://github.com/username1) | `expense.py`, `storage.py`, `main.py` (add / view / delete), `web/index.html`, `web/style.css` |
-| Student 2 – `<NAME>` | `<ROLL>` | [@username2](https://github.com/username2) | `reports.py` (search / filter / summary / monthly total / CSV export), `web/app.js` |
+| Student 1 – `parvinder` | `42` | [@username1](https://github.com/username1) | `expense.py`, `storage.py`, `main.py` (add / view / delete), `web/index.html`, `web/style.css` |
+| Student 2 – `sahil sharma` | `51` | [@username2](https://github.com/username2) | `reports.py` (search / filter / summary / monthly total / CSV export), `web/app.js` |
 
 ## ✨ Features
 1. **Add** an expense with title, amount, category and date (with validation)
