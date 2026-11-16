@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <h1>Expense Tracker</h1>
+      <div class="actions">
+        <button class="btn ghost" id="exportBtn" type="button">Export CSV</button>
+        <button class="btn solid desk" id="openAdd" type="button">Add expense</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="summary" aria-label="Spending summary">
+        <div class="period">
+          <button class="icon" id="prev" type="button" aria-label="Previous month">‹</button>
+          <strong id="periodLabel"></strong>
+          <button class="icon" id="next" type="button" aria-label="Next month">›</button>
+          <button class="link" id="allToggle" type="button"></button>
+        </div>
+        <p class="total" id="total" aria-live="polite"></p>
+        <p class="note" id="note"></p>
+        <div class="split" id="split" role="img" aria-label="Spending by category"></div>
+        <ul class="legend" id="legend"></ul>
+      </section>
+
+      <section class="ledger" aria-label="Expenses">
+        <div class="tools">
+          <label class="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="search" type="search" placeholder="Search expenses" aria-label="Search expenses">
+          </label>
+          <button class="pill" id="clearCat" type="button" hidden></button>
+        </div>
+        <div id="list"></div>
+      </section>
+    </main>
+  </div>
+
+  <button class="fab" id="fab" type="button" aria-label="Add expense">+</button>
+
+  <dialog id="dlg" aria-labelledby="dlgTitle">
+    <form id="form" novalidate>
+      <h2 id="dlgTitle">Add expense</h2>
+      <label>What was it for?
+        <input id="title" type="text" placeholder="Lunch with friends" autocomplete="off">
+      </label>
+      <div class="row">
+        <label>Amount
+          <input id="amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00">
+        </label>
+        <label>Date
+          <input id="date" type="date">
+        </label>
+      </div>
+      <fieldset><legend>Category</legend><div class="cats" id="cats"></div></fieldset>
+      <p class="error" id="err" role="alert"></p>
+      <div class="foot">
+        <button class="btn ghost" id="cancel" type="button">Cancel</button>
+        <button class="btn solid" type="submit">Save expense</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
