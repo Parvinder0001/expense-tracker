@@ -19,7 +19,12 @@
       </div>
     </header>
 
-    <main class="grid">
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" id="tabExp" role="tab" aria-selected="true" aria-controls="expView" type="button">Expenses</button>
+      <button class="tab" id="tabBuy" role="tab" aria-selected="false" aria-controls="buyView" type="button">Buy list <span class="badge" id="buyCount" hidden></span></button>
+    </nav>
+
+    <main class="grid" id="expView">
       <section class="summary" aria-label="Spending summary">
         <div class="period">
           <button class="icon" id="prev" type="button" aria-label="Previous month">‹</button>
@@ -44,6 +49,18 @@
         <div id="list"></div>
       </section>
     </main>
+
+    <main class="grid" id="buyView" hidden>
+      <section class="summary" aria-label="Buy list summary">
+        <h2 class="sub">Planned spending</h2>
+        <p class="total" id="buyTotal" aria-live="polite"></p>
+        <p class="note" id="buyNote"></p>
+      </section>
+
+      <section class="ledger" aria-label="Buy list">
+        <div id="buyList"></div>
+      </section>
+    </main>
   </div>
 
   <button class="fab" id="fab" type="button" aria-label="Add expense">+</button>
@@ -63,10 +80,37 @@
         </label>
       </div>
       <fieldset><legend>Category</legend><div class="cats" id="cats"></div></fieldset>
+      <label>Payment method
+        <select id="paymentMethod">
+          <option>UPI</option><option>Cash</option><option>Debit Card</option><option>Credit Card</option><option>Bank Transfer</option><option>Other</option>
+        </select>
+      </label>
+      <label>Tags <span class="hint">(comma-separated, optional)</span>
+        <input id="tags" type="text" placeholder="college, shared, trip" autocomplete="off">
+      </label>
       <p class="error" id="err" role="alert"></p>
       <div class="foot">
         <button class="btn ghost" id="cancel" type="button">Cancel</button>
         <button class="btn solid" type="submit">Save expense</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="buyDlg" aria-labelledby="buyDlgTitle">
+    <form id="buyForm" novalidate>
+      <h2 id="buyDlgTitle">Add to buy list</h2>
+      <label>What do you want to buy?
+        <input id="buyName" type="text" placeholder="Laptop bag" autocomplete="off">
+      </label>
+      <label>Estimated cost
+        <input id="buyPrice" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00">
+      </label>
+      <fieldset><legend>Priority</legend><div class="cats" id="buyPri"></div></fieldset>
+      <fieldset><legend>Category</legend><div class="cats" id="buyCats"></div></fieldset>
+      <p class="error" id="buyErr" role="alert"></p>
+      <div class="foot">
+        <button class="btn ghost" id="buyCancel" type="button">Cancel</button>
+        <button class="btn solid" type="submit">Save item</button>
       </div>
     </form>
   </dialog>

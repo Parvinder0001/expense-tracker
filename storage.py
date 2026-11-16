@@ -27,8 +27,8 @@ def next_id(expenses):
     return max((e.id for e in expenses), default=0) + 1
 
 
-def add_expense(expenses, title, amount, category, date):
-    expense = Expense(next_id(expenses), title, amount, category, date)
+def add_expense(expenses, title, amount, category, date, payment_method="Other", tags=None):
+    expense = Expense(next_id(expenses), title, amount, category, date, payment_method, tags or [])
     expenses.append(expense)
     save_expenses(expenses)
     return expense

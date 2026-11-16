@@ -21,6 +21,12 @@ h1{font:700 1.35rem/1.2 var(--display);margin:0;letter-spacing:-.01em}
 .btn.solid:hover{filter:brightness(1.08)}
 .desk{display:none}
 
+.tabs{display:flex;gap:.25rem;margin-bottom:1rem;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:.6rem 1rem;margin-bottom:-1px;font-weight:600;color:var(--muted);cursor:pointer}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--brand)}
+.badge{display:inline-block;min-width:1.4rem;padding:0 .4rem;margin-left:.25rem;border-radius:999px;background:var(--brand);color:var(--on-brand);font-size:.75rem;text-align:center}
+.sub{font:600 1rem var(--body);margin:0;color:var(--muted)}
+[hidden]{display:none!important}
 .grid{display:grid;gap:1rem}
 .summary,.ledger{background:var(--surface);border-radius:var(--r);padding:1.25rem;border:1px solid var(--line)}
 .period{display:flex;align-items:center;gap:.5rem}
@@ -49,6 +55,12 @@ h1{font:700 1.35rem/1.2 var(--display);margin:0;letter-spacing:-.01em}
 .item:last-child{border-bottom:0}
 .item .t{font-weight:500;overflow-wrap:anywhere}
 .item .c{display:block;color:var(--muted);font-size:.85rem}
+.check{width:2rem;height:2rem;border-radius:50%;border:1.5px solid var(--line);background:none;color:transparent;cursor:pointer;font-size:1rem;line-height:1;display:grid;place-items:center}
+.check:hover{border-color:var(--brand);background:var(--brand);color:var(--on-brand)}
+.tag{font-weight:600}
+.tag[data-p=High]{color:var(--danger)}
+.tag[data-p=Medium]{color:#b7791f}
+@media (prefers-color-scheme:dark){.tag[data-p=Medium]{color:#f0b429}}
 .del{width:2rem;height:2rem;border:0;border-radius:50%;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center}
 .del:hover{background:var(--bg);color:var(--danger)}
 .empty{text-align:center;padding:2.5rem 1rem;color:var(--muted)}
@@ -64,7 +76,8 @@ dialog[open]{animation:up .25s ease-out}
 form{padding:1.5rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom,0px))}
 form h2{font:700 1.35rem var(--display);margin:0 0 1rem}
 form label,legend{display:block;font-weight:500;font-size:.9rem;margin-bottom:.9rem}
-form input[type=text],form input[type=number],form input[type=date]{display:block;width:100%;margin-top:.3rem;padding:.7rem .8rem;background:var(--bg);border:1px solid transparent;border-radius:10px;color:var(--ink)}
+form input[type=text],form input[type=number],form input[type=date],form select{display:block;width:100%;margin-top:.3rem;padding:.7rem .8rem;background:var(--bg);border:1px solid transparent;border-radius:10px;color:var(--ink)}
+.hint{font-weight:400;color:var(--muted)}
 form input:focus{border-color:var(--brand);outline:none}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
 fieldset{border:0;padding:0;margin:0}

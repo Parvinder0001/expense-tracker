@@ -24,7 +24,8 @@ Built as the **SEC101 MCA Group Assignment** (Git, GitHub and Markdown).
 6. **Category-wise summary** of spending
 7. **Monthly total** for any `YYYY-MM`
 8. **Export** all expenses to CSV
-9. **Responsive web version** – works on mobile, tablet and desktop, with dark mode
+9. **Buy list** – note down things to buy in the future with an estimated cost and priority, see the planned total, and mark an item as *bought* to turn it into an expense
+10. **Responsive web version** – works on mobile, tablet and desktop, with dark mode
 
 ## 🛠 Technologies
 - Python 3.9+ (standard library only)
@@ -39,6 +40,7 @@ expense-tracker/
 ├── expense.py       # Expense model + validation
 ├── storage.py       # JSON load/save, add, delete
 ├── reports.py       # Search, filter, summaries, CSV export
+├── buylist.py       # Buy list for future purchases
 ├── config.py        # Shared settings
 ├── web/
 │   ├── index.html   # Responsive page structure
@@ -70,6 +72,7 @@ Resize the browser window (or use DevTools device mode) to see the responsive la
 2. View all expenses
 3. Delete expense
 4. Reports & search
+5. Buy list
 0. Exit
 
 ID  Date        Category       Amount  Title
@@ -77,6 +80,17 @@ ID  Date        Category       Amount  Title
 1   2026-11-10  Food           150.00  Lunch
 2   2026-11-11  Travel          40.00  Bus ticket
 Total: Rs. 190.00
+```
+
+### Buy list sample
+```text
+--- Buy List ---
+ID  Priority  Category    Est. cost  Item
+----------------------------------------------------
+1   High      Shopping      1800.00  Laptop bag
+3   Medium    Education      600.00  Books
+2   Low       Other         2500.00  Headphones
+Estimated total: Rs. 3100.00
 ```
 
 ## 📚 More

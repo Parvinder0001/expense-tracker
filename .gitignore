@@ -8,3 +8,4 @@ venv/
 .DS_Store
 data/expenses.json
 data/expenses_export.csv
+data/buylist.json
