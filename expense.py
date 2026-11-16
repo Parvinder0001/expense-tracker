@@ -1,8 +1,9 @@
 """Expense model and input validation (Student 1)."""
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import datetime
 
 CATEGORIES = ["Food", "Travel", "Shopping", "Bills", "Health", "Education", "Other"]
+PAYMENT_METHODS = ["Cash", "UPI", "Debit Card", "Credit Card", "Bank Transfer", "Other"]
 
 
 @dataclass
@@ -12,6 +13,8 @@ class Expense:
     amount: float
     category: str
     date: str  # YYYY-MM-DD
+    payment_method: str = "Other"
+    tags: list = field(default_factory=list)
 
     def to_dict(self):
         return asdict(self)
@@ -19,7 +22,8 @@ class Expense:
     @staticmethod
     def from_dict(data):
         return Expense(int(data["id"]), data["title"], float(data["amount"]),
-                       data["category"], data["date"])
+                       data["category"], data["date"], data.get("payment_method", "Other"),
+                       data.get("tags", []))
 
 
 def validate_amount(text):

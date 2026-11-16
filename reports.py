@@ -8,7 +8,9 @@ from expense import CATEGORIES
 
 def search_expenses(expenses, keyword):
     keyword = keyword.lower()
-    return [e for e in expenses if keyword in e.title.lower()]
+    return [e for e in expenses if keyword in e.title.lower()
+            or keyword in e.payment_method.lower()
+            or any(keyword in tag.lower() for tag in e.tags)]
 
 
 def filter_by_category(expenses, category):
@@ -30,9 +32,9 @@ def monthly_total(expenses, month):
 def export_csv(expenses, path=EXPORT_FILE):
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["ID", "Title", "Amount", "Category", "Date"])
+        writer.writerow(["ID", "Title", "Amount", "Category", "Date", "Payment Method", "Tags"])
         for e in expenses:
-            writer.writerow([e.id, e.title, e.amount, e.category, e.date])
+            writer.writerow([e.id, e.title, e.amount, e.category, e.date, e.payment_method, "; ".join(e.tags)])
     return path
 
 
@@ -40,10 +42,11 @@ def print_table(items):
     if not items:
         print("No expenses found.")
         return
-    print(f"{'ID':<4}{'Date':<12}{'Category':<11}{'Amount':>10}  Title")
-    print("-" * 52)
+    print(f"{'ID':<4}{'Date':<12}{'Category':<11}{'Amount':>10}  {'Payment':<14}Title / tags")
+    print("-" * 76)
     for e in items:
-        print(f"{e.id:<4}{e.date:<12}{e.category:<11}{e.amount:>10.2f}  {e.title}")
+        tags = f"  #{' #'.join(e.tags)}" if e.tags else ""
+        print(f"{e.id:<4}{e.date:<12}{e.category:<11}{e.amount:>10.2f}  {e.payment_method:<14}{e.title}{tags}")
 
 
 def reports_menu(expenses):

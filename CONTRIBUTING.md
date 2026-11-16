@@ -12,7 +12,8 @@
 - Cloned the repository and configured Git locally
 - Implemented **Search**, **Filter by category**, **Category summary**, **Monthly total**, **CSV export**
 - Wrote the web JavaScript (add, delete, search, filter, summary, export)
-- Files: `reports.py`, `web/app.js`
+- Added the **Buy list** feature (branch `student2`): add / view / mark as bought / remove, in both the CLI and the web app
+- Files: `reports.py`, `buylist.py`, `web/app.js`
 
 ## Branching Strategy
 | Branch | Owner | Purpose |
