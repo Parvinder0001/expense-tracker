@@ -20,7 +20,7 @@
 |--------|-------|---------|
 | `main` | Both | Stable, merged code |
 | `feature-member1` | Student 1 | Core expense features |
-| `feature-member2` | Student 2 | Reports and search |
+| `Student 2` | Student 2 | Reports and search |
 | `conflict-m1` / `conflict-m2` | Both | Merge-conflict demonstration |
 
 ## Pull Requests
