@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <h1>Expense Tracker</h1>
+      <div class="actions">
+        <button class="btn ghost" id="exportBtn" type="button">Export CSV</button>
+        <button class="btn solid desk" id="openAdd" type="button">Add expense</button>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" id="tabExp" role="tab" aria-selected="true" aria-controls="expView" type="button">Expenses</button>
+      <button class="tab" id="tabBuy" role="tab" aria-selected="false" aria-controls="buyView" type="button">Buy list <span class="badge" id="buyCount" hidden></span></button>
+      <button class="tab" id="tabSettings" role="tab" aria-selected="false" aria-controls="settingsView" type="button">Settings</button>
+    </nav>
+
+    <main class="grid" id="expView">
+      <section class="summary" aria-label="Spending summary">
+        <div class="period">
+          <button class="icon" id="prev" type="button" aria-label="Previous month">‹</button>
+          <strong id="periodLabel"></strong>
+          <button class="icon" id="next" type="button" aria-label="Next month">›</button>
+          <button class="link" id="allToggle" type="button"></button>
+        </div>
+        <p class="total" id="total" aria-live="polite"></p>
+        <p class="note" id="note"></p>
+        <section class="budget-card" id="budgetCard" hidden aria-label="Monthly budget progress">
+          <div class="budget-heading"><strong>Monthly budget</strong><span id="budgetLabel"></span></div>
+          <div class="budget-track"><div id="budgetProgress"></div></div>
+          <p class="budget-note" id="budgetNote"></p>
+        </section>
+        <div class="split" id="split" role="img" aria-label="Spending by category"></div>
+        <ul class="legend" id="legend"></ul>
+      </section>
+
+      <section class="ledger" aria-label="Expenses">
+        <div class="tools">
+          <label class="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="search" type="search" placeholder="Search expenses" aria-label="Search expenses">
+          </label>
+          <button class="pill" id="clearCat" type="button" hidden></button>
+        </div>
+        <div id="list"></div>
+      </section>
+    </main>
+
+    <main class="grid" id="buyView" hidden>
+      <section class="summary" aria-label="Buy list summary">
+        <h2 class="sub">Planned spending</h2>
+        <p class="total" id="buyTotal" aria-live="polite"></p>
+        <p class="note" id="buyNote"></p>
+      </section>
+
+      <section class="ledger" aria-label="Buy list">
+        <div id="buyList"></div>
+      </section>
+    </main>
+
+    <main class="settings-view" id="settingsView" hidden>
+      <section class="settings-intro">
+        <p class="eyebrow">PERSONALIZE YOUR TRACKER</p>
+        <h2>Settings</h2>
+        <p>Choose how the app looks and how new expenses are recorded.</p>
+      </section>
+      <section class="settings-grid" aria-label="App settings">
+        <label class="setting-card"><span class="setting-title">Appearance</span><span class="setting-help">Use light or dark colors, or follow your device.</span>
+          <select id="themeSetting"><option value="system">Use device setting</option><option value="light">Light</option><option value="dark">Dark</option></select>
+        </label>
+        <label class="setting-card"><span class="setting-title">Currency</span><span class="setting-help">Changes how amounts are displayed.</span>
+          <select id="currencySetting"><option value="INR">Indian Rupee (₹)</option><option value="USD">US Dollar ($)</option><option value="EUR">Euro (€)</option><option value="GBP">British Pound (£)</option></select>
+        </label>
+        <label class="setting-card"><span class="setting-title">Default payment method</span><span class="setting-help">Preselected when you add an expense.</span>
+          <select id="paymentSetting"><option>UPI</option><option>Cash</option><option>Debit Card</option><option>Credit Card</option><option>Bank Transfer</option><option>Other</option></select>
+        </label>
+        <label class="setting-card"><span class="setting-title">Monthly spending budget</span><span class="setting-help">Optional target shown on the monthly summary. Set to 0 to hide.</span>
+          <input id="budgetSetting" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00">
+        </label>
+      </section>
+      <section class="settings-tools">
+        <div><h3>Data backup</h3><p>Download your expenses, buy list, and settings as a JSON file.</p></div>
+        <button class="btn solid" id="backupBtn" type="button">Download backup</button>
+      </section>
+      <p class="settings-saved" id="settingsSaved" role="status"></p>
+    </main>
+  </div>
+
+  <button class="fab" id="fab" type="button" aria-label="Add expense">+</button>
+
+  <dialog id="dlg" aria-labelledby="dlgTitle">
+    <form id="form" novalidate>
+      <h2 id="dlgTitle">Add expense</h2>
+      <label>What was it for?
+        <input id="title" type="text" placeholder="Lunch with friends" autocomplete="off">
+      </label>
+      <div class="row">
+        <label>Amount
+          <input id="amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00">
+        </label>
+        <label>Date
+          <input id="date" type="date">
+        </label>
+      </div>
+      <fieldset><legend>Category</legend><div class="cats" id="cats"></div></fieldset>
+      <label>Payment method
+        <select id="paymentMethod">
+          <option>UPI</option><option>Cash</option><option>Debit Card</option><option>Credit Card</option><option>Bank Transfer</option><option>Other</option>
+        </select>
+      </label>
+      <label>Tags <span class="hint">(comma-separated, optional)</span>
+        <input id="tags" type="text" placeholder="college, shared, trip" autocomplete="off">
+      </label>
+      <p class="error" id="err" role="alert"></p>
+      <div class="foot">
+        <button class="btn ghost" id="cancel" type="button">Cancel</button>
+        <button class="btn solid" type="submit">Save expense</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="buyDlg" aria-labelledby="buyDlgTitle">
+    <form id="buyForm" novalidate>
+      <h2 id="buyDlgTitle">Add to buy list</h2>
+      <label>What do you want to buy?
+        <input id="buyName" type="text" placeholder="Laptop bag" autocomplete="off">
+      </label>
+      <label>Estimated cost
+        <input id="buyPrice" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00">
+      </label>
+      <fieldset><legend>Priority</legend><div class="cats" id="buyPri"></div></fieldset>
+      <fieldset><legend>Category</legend><div class="cats" id="buyCats"></div></fieldset>
+      <p class="error" id="buyErr" role="alert"></p>
+      <div class="foot">
+        <button class="btn ghost" id="buyCancel" type="button">Cancel</button>
+        <button class="btn solid" type="submit">Save item</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
